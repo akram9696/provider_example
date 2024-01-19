@@ -14,42 +14,46 @@ class ProviderDemoScreen extends StatefulWidget {
 }
 
 class _ProviderDemoScreenState extends State<ProviderDemoScreen> {
-  final ProductChangeNotifier productProvider = getIt<ProductChangeNotifier>();
+  // final productProvider = Provider.of<ProductChangeNotifier>(context);
+  // final ProductChangeNotifier productProvider = getIt<ProductChangeNotifier>();
   @override
   void initState() {
     super.initState();
-
-    productProvider.fetchNextPage();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      Provider.of<ProductChangeNotifier>(context, listen: false).fetchNextPage();
+    });
   }
 
 
   @override
   Widget build(BuildContext context) {
 
-    return ChangeNotifierProvider(
-      create: (BuildContext context) => productProvider,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text("Provider Demo"),
-        ),
-        body: Container(
-          padding: EdgeInsets.all(20),
-          child:productProvider.loading
-              ?const CircularProgressIndicator()
-              : productProvider.failure != null?Text(productProvider.failure.toString()) :
-          Container(
-                  margin: const EdgeInsets.only(top: 40, bottom: 20),
-                  child: ListView.builder(
-                    itemCount: 8,
-                    itemBuilder: (BuildContext context, int index) {
-                      return ListTile(
-                        title: Text(
-                            productProvider.products[index].id.toString() ?? ""),
-                      );
-                    },
-                  ),
-                ),
-        ),
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Provider Demo"),
+      ),
+      body: Consumer<ProductChangeNotifier>(
+
+        builder: (BuildContext context, value, Widget? child) {
+          if (value.loading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+       return   ListView.builder(
+            itemCount: value.products.length,
+            itemBuilder: (BuildContext context, int index) {
+              return ListTile(
+                title: Text(
+                    value.products[index].id.toString() ?? ""),
+                subtitle:Text(
+                    value.products[index].type.toString() ?? ""),
+              );
+            },
+          );
+        },
+
       ),
     );
   }
